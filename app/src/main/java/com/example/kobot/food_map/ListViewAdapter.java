@@ -80,4 +80,15 @@ public class ListViewAdapter extends BaseAdapter {
 
         listViewItemList.add(item);
     }
+
+    public String getTitle(int position){
+        // Data Set(listViewItemList)에서 position에 위치한 데이터 참조 획득
+        ListItem listViewItem = listViewItemList.get(position);
+        return listViewItem.getTitle();
+    }
+
+    public void deleteItem(int position)
+    {
+        listViewItemList.remove(position);
+    }
 }

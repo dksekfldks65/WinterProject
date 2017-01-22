@@ -1,8 +1,12 @@
 package com.example.kobot.food_map;
 
+import android.app.AlertDialog;
 import android.content.Context;
+import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.pm.ActivityInfo;
+import android.database.Cursor;
+import android.database.sqlite.SQLiteDatabase;
 import android.location.Location;
 import android.location.LocationListener;
 import android.location.LocationManager;
@@ -10,6 +14,7 @@ import android.os.Bundle;
 import android.support.v4.app.FragmentActivity;
 import android.support.v4.content.ContextCompat;
 import android.view.View;
+import android.widget.AdapterView;
 import android.widget.Button;
 import android.widget.EditText;
 import android.widget.ListView;
@@ -32,8 +37,8 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
     private GoogleMap mMap;
     ListView listview ;
     ListViewAdapter adapter;
-    String spinnertext;
     Button save;
+    static DBManager dbManager;
 
 
     @Override
@@ -42,7 +47,7 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
         setContentView(R.layout.activity_maps);
 
         //DBManager객체 생성
-        final DBManager dbManager = new DBManager(getApplicationContext(), "Food2.db", null, 1);
+        dbManager = new DBManager(getApplicationContext(), "Food4.db", null, 1);
 
         // 화면을 portrait 세로화면으로 고정
         setRequestedOrientation(ActivityInfo.SCREEN_ORIENTATION_PORTRAIT);
@@ -53,7 +58,7 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
         mapFragment.getMapAsync(this);
 
         //매장이름을 받아옴
-        final EditText editTile = (EditText) findViewById(R.id.title);
+        final EditText editTitle = (EditText) findViewById(R.id.title);
 
         //Spinner 생성 및 string객체로 값 받아옴
         final Spinner spinner = (Spinner)findViewById(R.id.spinner1);
@@ -103,25 +108,85 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
             @Override
             public void onClick(View view) {
 
-                String title = editTile.getText().toString();
+                String title = editTitle.getText().toString();
 
-                spinnertext = spinner.getSelectedItem().toString();
+                String spinnertext = spinner.getSelectedItem().toString();
 
                 String memo = editMemo.getText().toString();
 
-                dbManager.insert("insert into FOOD_LIST values(null, '" + title + "', " + memo + ");");
+                dbManager.insert("insert into FOOD_LIST values(null, '" + title + "', '" + spinnertext + "');");
 
                 tvResult.setText( dbManager.PrintData() );
+
+                editTitle.setText("");
+                editMemo.setText("");
 
             }
         });
 
-        // 첫 번째 아이템 추가.
-        adapter.addItem(ContextCompat.getDrawable(this, R.drawable.ic_launcher),
-                "Box", "Account Box Black 36dp") ;
-        // 두 번째 아이템 추가.
-        adapter.addItem(ContextCompat.getDrawable(this, R.drawable.ic_launcher),
-                "Circle", "Account Circle Black 36dp") ;
+        //db접근 및 테이블 지정
+        SQLiteDatabase db = dbManager.getReadableDatabase();
+        Cursor cursor = db.rawQuery("SELECT * FROM FOOD_LIST", null);
+
+        //데이터 베이스 내용 리스트뷰 출력
+        while(cursor.moveToNext())
+        {
+            //리스트뷰 초기화
+            String temp_title = cursor.getString(1);
+            String temp_category = cursor.getString(2);
+            adapter.addItem(ContextCompat.getDrawable(this, R.drawable.ic_launcher), temp_title, temp_category) ;
+
+        }
+
+        // 위에서 생성한 listview에 클릭 이벤트 핸들러 정의.
+        listview.setOnItemClickListener(new AdapterView.OnItemClickListener() {
+            @Override
+            public void onItemClick(AdapterView parent, View v, int position, long id) {
+                // get item
+                ListItem item = (ListItem) parent.getItemAtPosition(position) ;
+                Intent intent = new Intent(getApplicationContext(), FoodListView.class);
+                String p1 = Integer.toString(position);
+                intent.putExtra("itemi", position);
+                startActivity(intent);
+
+                // TODO : use item data.
+            }
+        }) ;
+
+
+        listview.setOnItemLongClickListener(new AdapterView.OnItemLongClickListener() {//길게 클릭했을 때
+            @Override
+            public boolean onItemLongClick(AdapterView<?> adapterView, View view, final int position, final long id) {
+                AlertDialog.Builder alert = new AlertDialog.Builder(view.getContext());
+                alert.setTitle("삭제");
+                alert.setMessage("이 리스트를 삭제하시겠습니까?");
+                alert.setPositiveButton("OK", new DialogInterface.OnClickListener() {
+                    @Override
+                    public void onClick(DialogInterface dialog, int i) {
+                        dialog.dismiss();
+
+                        SQLiteDatabase db = dbManager.getReadableDatabase();
+
+                        Cursor cursor = db.rawQuery("SELECT * FROM FOOD_LIST", null);
+                        String title="";
+
+                        title = adapter.getTitle(position);
+
+                        Toast.makeText(getApplicationContext(), String.valueOf(position), Toast.LENGTH_LONG).show();
+                        Toast.makeText(getApplicationContext(), String.valueOf(title), Toast.LENGTH_LONG).show();
+
+                        //DB delete하는 명령, 리스트뷰 갱신
+                        dbManager.delete("delete from FOOD_LIST where name = '" + title + "';");
+                        adapter.deleteItem(position);
+                        adapter.notifyDataSetChanged();
+
+                    }
+                });
+                alert.show();
+                return false;
+            }
+        });
+
 
     }
 
