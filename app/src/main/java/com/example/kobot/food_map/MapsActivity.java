@@ -11,7 +11,9 @@ import android.support.v4.app.FragmentActivity;
 import android.support.v4.content.ContextCompat;
 import android.view.View;
 import android.widget.Button;
+import android.widget.EditText;
 import android.widget.ListView;
+import android.widget.Spinner;
 import android.widget.TabHost;
 import android.widget.TextView;
 import android.widget.Toast;
@@ -30,11 +32,17 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
     private GoogleMap mMap;
     ListView listview ;
     ListViewAdapter adapter;
+    String spinnertext;
+    Button save;
+
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_maps);
+
+        //DBManager객체 생성
+        final DBManager dbManager = new DBManager(getApplicationContext(), "Food2.db", null, 1);
 
         // 화면을 portrait 세로화면으로 고정
         setRequestedOrientation(ActivityInfo.SCREEN_ORIENTATION_PORTRAIT);
@@ -43,6 +51,18 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
         SupportMapFragment mapFragment = (SupportMapFragment) getSupportFragmentManager()
                 .findFragmentById(R.id.map);
         mapFragment.getMapAsync(this);
+
+        //매장이름을 받아옴
+        final EditText editTile = (EditText) findViewById(R.id.title);
+
+        //Spinner 생성 및 string객체로 값 받아옴
+        final Spinner spinner = (Spinner)findViewById(R.id.spinner1);
+
+        //메모내용을 받아옴
+        final EditText editMemo = (EditText) findViewById(R.id.grade);
+
+        final TextView tvResult = (TextView) findViewById(R.id.tv_result);
+
 
         // Adapter 생성
         adapter = new ListViewAdapter() ;
@@ -76,53 +96,32 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
         tabHost.addTab(spec3);
         tabHost.addTab(spec4);
 
-        // 첫 번째 아이템 추가.
-        adapter.addItem(ContextCompat.getDrawable(this, R.drawable.ic_launcher),
-                "Box", "Account Box Black 36dp") ;
-        // 두 번째 아이템 추가.
-        adapter.addItem(ContextCompat.getDrawable(this, R.drawable.ic_launcher),
-                "Circle", "Account Circle Black 36dp") ;
-        // 세 번째 아이템 추가.
-        adapter.addItem(ContextCompat.getDrawable(this, R.drawable.ic_launcher),
-                "Ind", "Assignment Ind Black 36dp") ;
-        // 첫 번째 아이템 추가.
-        adapter.addItem(ContextCompat.getDrawable(this, R.drawable.ic_launcher),
-                "Box", "Account Box Black 36dp") ;
 
 
-        // 두 번째 아이템 추가.
-        adapter.addItem(ContextCompat.getDrawable(this, R.drawable.ic_launcher),
-                "Circle", "Account Circle Black 36dp") ;
-        // 세 번째 아이템 추가.
-        adapter.addItem(ContextCompat.getDrawable(this, R.drawable.ic_launcher),
-                "Ind", "Assignment Ind Black 36dp") ;
+        save = (Button) findViewById(R.id.save);
+        save.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+
+                String title = editTile.getText().toString();
+
+                spinnertext = spinner.getSelectedItem().toString();
+
+                String memo = editMemo.getText().toString();
+
+                dbManager.insert("insert into FOOD_LIST values(null, '" + title + "', " + memo + ");");
+
+                tvResult.setText( dbManager.PrintData() );
+
+            }
+        });
+
         // 첫 번째 아이템 추가.
         adapter.addItem(ContextCompat.getDrawable(this, R.drawable.ic_launcher),
                 "Box", "Account Box Black 36dp") ;
         // 두 번째 아이템 추가.
         adapter.addItem(ContextCompat.getDrawable(this, R.drawable.ic_launcher),
                 "Circle", "Account Circle Black 36dp") ;
-        // 세 번째 아이템 추가.
-        adapter.addItem(ContextCompat.getDrawable(this, R.drawable.ic_launcher),
-                "Ind", "Assignment Ind Black 36dp") ;
-        // 첫 번째 아이템 추가.
-        adapter.addItem(ContextCompat.getDrawable(this, R.drawable.ic_launcher),
-                "Box", "Account Box Black 36dp") ;
-        // 두 번째 아이템 추가.
-        adapter.addItem(ContextCompat.getDrawable(this, R.drawable.ic_launcher),
-                "Circle", "Account Circle Black 36dp") ;
-        // 세 번째 아이템 추가.
-        adapter.addItem(ContextCompat.getDrawable(this, R.drawable.ic_launcher),
-                "Ind", "Assignment Ind Black 36dp") ;
-        // 첫 번째 아이템 추가.
-        adapter.addItem(ContextCompat.getDrawable(this, R.drawable.ic_launcher),
-                "Box", "Account Box Black 36dp") ;
-        // 두 번째 아이템 추가.
-        adapter.addItem(ContextCompat.getDrawable(this, R.drawable.ic_launcher),
-                "Circle", "Account Circle Black 36dp") ;
-        // 세 번째 아이템 추가.
-        adapter.addItem(ContextCompat.getDrawable(this, R.drawable.ic_launcher),
-                "Ind", "Assignment Ind Black 36dp") ;
 
     }
 
