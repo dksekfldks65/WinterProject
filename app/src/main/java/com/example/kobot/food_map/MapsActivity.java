@@ -68,9 +68,6 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
         //메모내용을 받아옴
         final EditText editMemo = (EditText) findViewById(R.id.grade);
 
-        final TextView tvResult = (TextView) findViewById(R.id.tv_result);
-
-
         // Adapter 생성
         adapter = new ListViewAdapter() ;
 
@@ -124,8 +121,7 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
                 // get item
                 ListItem item = (ListItem) parent.getItemAtPosition(position) ;
                 Intent intent = new Intent(getApplicationContext(), FoodListView.class);
-                String p1 = Integer.toString(position);
-                intent.putExtra("itemi", position);
+                intent.putExtra("itemi", item.getTitle());
                 startActivity(intent);
 
                 // TODO : use item data.
@@ -188,7 +184,6 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
         //메모내용을 받아옴
         final EditText editMemo = (EditText) findViewById(R.id.grade);
 
-        final TextView tvResult = (TextView) findViewById(R.id.tv_result);
 
         String title = editTitle.getText().toString();
 
@@ -197,8 +192,6 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
         String memo = editMemo.getText().toString();
 
         dbManager.insert("insert into FOOD_LIST values(null, '" + title + "', '" + spinnertext + "');");
-
-        tvResult.setText( dbManager.PrintData() );
 
         editTitle.setText("");
         editMemo.setText("");
