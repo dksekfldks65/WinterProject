@@ -57,6 +57,8 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
                 .findFragmentById(R.id.map);
         mapFragment.getMapAsync(this);
 
+        save = (Button) findViewById(R.id.save);
+
         //매장이름을 받아옴
         final EditText editTitle = (EditText) findViewById(R.id.title);
 
@@ -100,29 +102,6 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
         tabHost.addTab(spec2);
         tabHost.addTab(spec3);
         tabHost.addTab(spec4);
-
-
-
-        save = (Button) findViewById(R.id.save);
-        save.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View view) {
-
-                String title = editTitle.getText().toString();
-
-                String spinnertext = spinner.getSelectedItem().toString();
-
-                String memo = editMemo.getText().toString();
-
-                dbManager.insert("insert into FOOD_LIST values(null, '" + title + "', '" + spinnertext + "');");
-
-                tvResult.setText( dbManager.PrintData() );
-
-                editTitle.setText("");
-                editMemo.setText("");
-
-            }
-        });
 
         //db접근 및 테이블 지정
         SQLiteDatabase db = dbManager.getReadableDatabase();
@@ -188,6 +167,55 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
         });
 
 
+    }
+
+    //데이터 저장 및 리스트뷰 출력
+    public void onclickedsave(View v)
+    {
+        // Adapter 생성
+        adapter = new ListViewAdapter();
+
+        // 리스트뷰 참조 및 Adapter달기
+        listview = (ListView) findViewById(R.id.foodlist);
+        listview.setAdapter(adapter);
+
+        //매장이름을 받아옴
+        final EditText editTitle = (EditText) findViewById(R.id.title);
+
+        //Spinner 생성 및 string객체로 값 받아옴
+        final Spinner spinner = (Spinner)findViewById(R.id.spinner1);
+
+        //메모내용을 받아옴
+        final EditText editMemo = (EditText) findViewById(R.id.grade);
+
+        final TextView tvResult = (TextView) findViewById(R.id.tv_result);
+
+        String title = editTitle.getText().toString();
+
+        String spinnertext = spinner.getSelectedItem().toString();
+
+        String memo = editMemo.getText().toString();
+
+        dbManager.insert("insert into FOOD_LIST values(null, '" + title + "', '" + spinnertext + "');");
+
+        tvResult.setText( dbManager.PrintData() );
+
+        editTitle.setText("");
+        editMemo.setText("");
+
+        //db접근 및 테이블 지정
+        SQLiteDatabase db = dbManager.getReadableDatabase();
+        Cursor cursor = db.rawQuery("SELECT * FROM FOOD_LIST", null);
+
+        //데이터 베이스 내용 리스트뷰 출력
+        while(cursor.moveToNext())
+        {
+            //리스트뷰 초기화
+            String temp_title = cursor.getString(1);
+            String temp_category = cursor.getString(2);
+            adapter.addItem(ContextCompat.getDrawable(this, R.drawable.ic_launcher), temp_title, temp_category) ;
+
+        }
     }
 
 
