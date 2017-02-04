@@ -6,6 +6,7 @@ public class ListItem {
     private Drawable iconDrawable ;
     private String titleStr ;
     private String descStr ;
+    private int id;
 
     public void setIcon(Drawable icon) {
         iconDrawable = icon ;
@@ -16,6 +17,7 @@ public class ListItem {
     public void setDesc(String desc) {
         descStr = desc ;
     }
+    public void setId(int id) {this.id=id;}
 
     public Drawable getIcon() {
         return this.iconDrawable ;
@@ -26,4 +28,6 @@ public class ListItem {
     public String getDesc() {
         return this.descStr ;
     }
+    public int getId() {return this.id;}
+
 }

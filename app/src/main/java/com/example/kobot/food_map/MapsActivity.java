@@ -39,7 +39,8 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
     ListViewAdapter adapter;
     Button save;
     static DBManager dbManager;
-
+    static double longi;
+    static double lati;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -47,7 +48,7 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
         setContentView(R.layout.activity_maps);
 
         //DBManager객체 생성
-        dbManager = new DBManager(getApplicationContext(), "Food4.db", null, 1);
+        dbManager = new DBManager(getApplicationContext(), "Food6.db", null, 1);
 
         // 화면을 portrait 세로화면으로 고정
         setRequestedOrientation(ActivityInfo.SCREEN_ORIENTATION_PORTRAIT);
@@ -100,9 +101,10 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
         tabHost.addTab(spec3);
         tabHost.addTab(spec4);
 
+
         //db접근 및 테이블 지정
         SQLiteDatabase db = dbManager.getReadableDatabase();
-        Cursor cursor = db.rawQuery("SELECT * FROM FOOD_LIST", null);
+        Cursor cursor =db.rawQuery("SELECT _id, name, category, memo FROM FOOD_LIST", null);
 
         //데이터 베이스 내용 리스트뷰 출력
         while(cursor.moveToNext())
@@ -121,13 +123,13 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
                 // get item
                 ListItem item = (ListItem) parent.getItemAtPosition(position) ;
                 Intent intent = new Intent(getApplicationContext(), FoodListView.class);
+                Toast.makeText(getApplicationContext(), String.valueOf(item.getId()), Toast.LENGTH_SHORT).show();
                 intent.putExtra("itemi", item.getTitle());
                 startActivity(intent);
 
                 // TODO : use item data.
             }
         }) ;
-
 
         listview.setOnItemLongClickListener(new AdapterView.OnItemLongClickListener() {//길게 클릭했을 때
             @Override
@@ -142,16 +144,13 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
 
                         SQLiteDatabase db = dbManager.getReadableDatabase();
 
-                        Cursor cursor = db.rawQuery("SELECT * FROM FOOD_LIST", null);
-                        String title="";
+                        long get_id;
 
-                        title = adapter.getTitle(position);
+                        get_id = adapter.getItemId(position);
 
-                        Toast.makeText(getApplicationContext(), String.valueOf(position), Toast.LENGTH_LONG).show();
-                        Toast.makeText(getApplicationContext(), String.valueOf(title), Toast.LENGTH_LONG).show();
 
                         //DB delete하는 명령, 리스트뷰 갱신
-                        dbManager.delete("delete from FOOD_LIST where name = '" + title + "';");
+                        dbManager.delete("delete from FOOD_LIST where _id = '" + get_id + "';");
                         adapter.deleteItem(position);
                         adapter.notifyDataSetChanged();
 
@@ -161,8 +160,6 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
                 return false;
             }
         });
-
-
     }
 
     //데이터 저장 및 리스트뷰 출력
@@ -191,14 +188,15 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
 
         String memo = editMemo.getText().toString();
 
-        dbManager.insert("insert into FOOD_LIST values(null, '" + title + "', '" + spinnertext + "');");
+        dbManager.insert("insert into FOOD_LIST values(null, '" + title + "', '" + spinnertext + "', '" +memo + "');");
+        //dbManager.insert("insert into FOOD_MAP values(null, lati, longi);");
 
         editTitle.setText("");
         editMemo.setText("");
 
         //db접근 및 테이블 지정
         SQLiteDatabase db = dbManager.getReadableDatabase();
-        Cursor cursor = db.rawQuery("SELECT * FROM FOOD_LIST", null);
+        Cursor cursor =db.rawQuery("SELECT _id, name, category, memo FROM FOOD_LIST", null);
 
         //데이터 베이스 내용 리스트뷰 출력
         while(cursor.moveToNext())
@@ -212,15 +210,6 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
     }
 
 
-    /**
-     * Manipulates the map once available.
-     * This callback is triggered when the map is ready to be used.
-     * This is where we can add markers or lines, add listeners or move the camera. In this case,
-     * we just add a marker near Sydney, Australia.
-     * If Google Play services is not installed on the device, the user will be prompted to install
-     * it inside the SupportMapFragment. This method will only be triggered once the user has
-     * installed Google Play services and returned to the app.
-     */
     @Override
     public void onMapReady(GoogleMap googleMap) {
         mMap = googleMap;
@@ -253,6 +242,9 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
             //capture location data sent by current provider
             latitude = location.getLatitude();
             longitude = location.getLongitude();
+
+            lati = latitude;
+            longi = longitude;
 
             showCurrentLocation(latitude,longitude);
 

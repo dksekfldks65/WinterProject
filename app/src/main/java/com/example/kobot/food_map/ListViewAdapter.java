@@ -16,6 +16,8 @@ import android.widget.TextView;
 import java.util.ArrayList;
 
 public class ListViewAdapter extends BaseAdapter {
+    static int id=1;
+
     // Adapter에 추가된 데이터를 저장하기 위한 ArrayList
     private ArrayList<ListItem> listViewItemList = new ArrayList<ListItem>() ;
 
@@ -55,13 +57,17 @@ public class ListViewAdapter extends BaseAdapter {
         titleTextView.setText(listViewItem.getTitle());
         descTextView.setText(listViewItem.getDesc());
 
+
         return convertView;
     }
 
     // 지정한 위치(position)에 있는 데이터와 관계된 아이템(row)의 ID를 리턴. : 필수 구현
     @Override
     public long getItemId(int position) {
-        return position ;
+
+        ListItem listViewItem = listViewItemList.get(position);
+
+        return listViewItem.getId() ;
     }
 
     // 지정한 위치(position)에 있는 데이터 리턴 : 필수 구현
@@ -77,6 +83,8 @@ public class ListViewAdapter extends BaseAdapter {
         item.setIcon(icon);
         item.setTitle(title);
         item.setDesc(desc);
+        item.setId(id);
+        id++;
 
         listViewItemList.add(item);
     }
@@ -91,4 +99,5 @@ public class ListViewAdapter extends BaseAdapter {
     {
         listViewItemList.remove(position);
     }
+
 }

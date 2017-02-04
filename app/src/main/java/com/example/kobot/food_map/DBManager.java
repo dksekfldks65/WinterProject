@@ -8,8 +8,11 @@ import android.database.Cursor;
 import android.database.sqlite.SQLiteDatabase;
 import android.database.sqlite.SQLiteDatabase.CursorFactory;
 import android.database.sqlite.SQLiteOpenHelper;
+import android.support.v4.content.ContextCompat;
+import android.widget.ListView;
 
 public class DBManager extends SQLiteOpenHelper  {
+
 
     public DBManager(Context context, String name, CursorFactory factory, int version) {
         super(context, name, factory, version);
@@ -19,7 +22,8 @@ public class DBManager extends SQLiteOpenHelper  {
     public void onCreate(SQLiteDatabase db) {
         // 새로운 테이블을 생성한다.
         // create table 테이블명 (컬럼명 타입 옵션);
-        db.execSQL("CREATE TABLE FOOD_LIST( _id INTEGER PRIMARY KEY AUTOINCREMENT, name TEXT, category TEXT);");
+        db.execSQL("CREATE TABLE FOOD_LIST( _id INTEGER PRIMARY KEY AUTOINCREMENT,  name TEXT, category TEXT, memo TEXT);");
+        db.execSQL("CREATE TABLE FOOD_MAP(_id INTEGER PRIMARY KEY AUTOINCREMENT, lati REAL, longi REAL);");
     }
 
     @Override
@@ -44,20 +48,9 @@ public class DBManager extends SQLiteOpenHelper  {
         db.close();
     }
 
-    public String PrintData() {
-        SQLiteDatabase db = getReadableDatabase();
-        String str = "";
+    public void listPrint()
+    {
 
-        Cursor cursor = db.rawQuery("select * from FOOD_LIST", null);
-        while(cursor.moveToNext()) {
-            str += cursor.getInt(0)
-                    + " : foodName "
-                    + cursor.getString(1)
-                    + ", category = "
-                    + cursor.getString(2)
-                    + "\n";
-        }
-
-        return str;
     }
+
 }
