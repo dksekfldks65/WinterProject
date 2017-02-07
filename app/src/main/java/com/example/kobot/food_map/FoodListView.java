@@ -31,20 +31,20 @@ public class FoodListView extends AppCompatActivity {
 
         Intent intent = getIntent();
 
-        String name = intent.getExtras().getString("itemi");
+        //현재 id값 받음
+        int id = intent.getExtras().getInt("itemi");
 
         //db열기
-        dbManager= new DBManager(getApplicationContext(), "Food6.db", null, 1);
+        dbManager= new DBManager(getApplicationContext(), "Food.db", null, 1);
         SQLiteDatabase db = dbManager.getReadableDatabase();
 
         //커서지정
         Cursor cursor =db.rawQuery("SELECT _id, name, category, memo FROM FOOD_LIST", null);
 
-        //db에 접근하여 현재 리스트뷰 내용 화면에 출력
+        //db에 접근하여 id가 같으면 현재 리스트뷰 내용 화면에 출력
         while(cursor.moveToNext())
         {
-
-            if(cursor.getString(1).equals(name) )
+            if(cursor.getInt(0) == id )
             {
                 title.setText(cursor.getString(1));
                 memo.setText(cursor.getString(3));

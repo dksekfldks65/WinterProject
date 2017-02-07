@@ -48,7 +48,7 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
         setContentView(R.layout.activity_maps);
 
         //DBManager객체 생성
-        dbManager = new DBManager(getApplicationContext(), "Food6.db", null, 1);
+        dbManager = new DBManager(getApplicationContext(), "Food.db", null, 1);
 
         // 화면을 portrait 세로화면으로 고정
         setRequestedOrientation(ActivityInfo.SCREEN_ORIENTATION_PORTRAIT);
@@ -101,7 +101,6 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
         tabHost.addTab(spec3);
         tabHost.addTab(spec4);
 
-
         //db접근 및 테이블 지정
         SQLiteDatabase db = dbManager.getReadableDatabase();
         Cursor cursor =db.rawQuery("SELECT _id, name, category, memo FROM FOOD_LIST", null);
@@ -112,7 +111,7 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
             //리스트뷰 초기화
             String temp_title = cursor.getString(1);
             String temp_category = cursor.getString(2);
-            adapter.addItem(ContextCompat.getDrawable(this, R.drawable.ic_launcher), temp_title, temp_category) ;
+            adapter.addItem(ContextCompat.getDrawable(this, R.drawable.ic_launcher), temp_title, temp_category, cursor.getInt(0)) ;
 
         }
 
@@ -123,8 +122,10 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
                 // get item
                 ListItem item = (ListItem) parent.getItemAtPosition(position) ;
                 Intent intent = new Intent(getApplicationContext(), FoodListView.class);
+
                 Toast.makeText(getApplicationContext(), String.valueOf(item.getId()), Toast.LENGTH_SHORT).show();
-                intent.putExtra("itemi", item.getTitle());
+
+                intent.putExtra("itemi", item.getId());
                 startActivity(intent);
 
                 // TODO : use item data.
@@ -151,6 +152,8 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
 
                         //DB delete하는 명령, 리스트뷰 갱신
                         dbManager.delete("delete from FOOD_LIST where _id = '" + get_id + "';");
+                        dbManager.delete("delete from FOOD_MAP where food_id = '" + get_id + "';");
+
                         adapter.deleteItem(position);
                         adapter.notifyDataSetChanged();
 
@@ -160,11 +163,14 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
                 return false;
             }
         });
+
     }
 
     //데이터 저장 및 리스트뷰 출력
     public void onclickedsave(View v)
     {
+        int food_id=0;
+
         // Adapter 생성
         adapter = new ListViewAdapter();
 
@@ -188,8 +194,10 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
 
         String memo = editMemo.getText().toString();
 
+        Toast.makeText(getApplicationContext(), String.valueOf(lati), Toast.LENGTH_SHORT).show();
+        Toast.makeText(getApplicationContext(), String.valueOf(longi), Toast.LENGTH_SHORT).show();
+
         dbManager.insert("insert into FOOD_LIST values(null, '" + title + "', '" + spinnertext + "', '" +memo + "');");
-        //dbManager.insert("insert into FOOD_MAP values(null, lati, longi);");
 
         editTitle.setText("");
         editMemo.setText("");
@@ -198,39 +206,48 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
         SQLiteDatabase db = dbManager.getReadableDatabase();
         Cursor cursor =db.rawQuery("SELECT _id, name, category, memo FROM FOOD_LIST", null);
 
-        //데이터 베이스 내용 리스트뷰 출력
+        //리스트뷰 추가
         while(cursor.moveToNext())
         {
-            //리스트뷰 초기화
             String temp_title = cursor.getString(1);
             String temp_category = cursor.getString(2);
-            adapter.addItem(ContextCompat.getDrawable(this, R.drawable.ic_launcher), temp_title, temp_category) ;
+            adapter.addItem(ContextCompat.getDrawable(this, R.drawable.ic_launcher), temp_title, temp_category, cursor.getInt(0)) ;
 
+            food_id = cursor.getInt(0);
         }
+
+        dbManager.insert("insert into FOOD_MAP values(null, "+food_id+","+lati+", "+longi+");");
     }
 
 
     @Override
     public void onMapReady(GoogleMap googleMap) {
         mMap = googleMap;
+        Location location;
         LocationManager manager = (LocationManager)getSystemService(Context.LOCATION_SERVICE) ;
         GPSListener gpsListener = new GPSListener();
         long minTime = 10000;
         float minDistance = 0;
 
 
-        manager.requestLocationUpdates(
-                LocationManager.GPS_PROVIDER,
-                minTime,
-                minDistance,
-                gpsListener);
-        manager.requestLocationUpdates(
-                LocationManager.NETWORK_PROVIDER,
-                minTime,
-                minDistance,
-                gpsListener);
-        Toast.makeText(getApplicationContext(), "위치 확인 시작함. 로그를 확인하세요.", Toast.LENGTH_SHORT).show();
+        try {
+            Toast.makeText(getApplicationContext(), "try문", Toast.LENGTH_SHORT).show();
+            manager.requestLocationUpdates(
+                    LocationManager.GPS_PROVIDER,
+                    minTime,
+                    minDistance,
+                    gpsListener);
+        }
 
+        catch (Exception E) {
+            Toast.makeText(getApplicationContext(), "예외처리", Toast.LENGTH_SHORT).show();
+            manager.requestLocationUpdates(
+                    LocationManager.NETWORK_PROVIDER,
+                    minTime,
+                    minDistance,
+                    gpsListener);
+        }
+        Toast.makeText(getApplicationContext(), "위치 확인 시작함. 로그를 확인하세요.", Toast.LENGTH_SHORT).show();
     }
 
     private class GPSListener implements LocationListener {
@@ -243,6 +260,8 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
             latitude = location.getLatitude();
             longitude = location.getLongitude();
 
+            Toast.makeText(getApplicationContext(), String.valueOf(latitude), Toast.LENGTH_SHORT).show();
+            Toast.makeText(getApplicationContext(), String.valueOf(longitude), Toast.LENGTH_SHORT).show();
             lati = latitude;
             longi = longitude;
 
@@ -254,6 +273,11 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
         }
 
         public void onProviderEnabled(String provider) {
+            lati = location.getLatitude();
+            longi = location.getLongitude();
+
+            Toast.makeText(getApplicationContext(), String.valueOf(lati), Toast.LENGTH_SHORT).show();
+            Toast.makeText(getApplicationContext(), String.valueOf(longi), Toast.LENGTH_SHORT).show();
         }
 
         public void onStatusChanged(String provider, int status, Bundle extras) {
