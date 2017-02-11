@@ -7,10 +7,15 @@ import android.content.Intent;
 import android.content.pm.ActivityInfo;
 import android.database.Cursor;
 import android.database.sqlite.SQLiteDatabase;
+import android.graphics.Bitmap;
+import android.graphics.BitmapFactory;
 import android.location.Location;
 import android.location.LocationListener;
 import android.location.LocationManager;
+import android.net.Uri;
 import android.os.Bundle;
+import android.os.Environment;
+import android.provider.MediaStore;
 import android.support.v4.app.FragmentActivity;
 import android.support.v4.content.ContextCompat;
 import android.view.View;
@@ -32,6 +37,10 @@ import com.google.android.gms.maps.model.LatLng;
 import com.google.android.gms.maps.model.Marker;
 import com.google.android.gms.maps.model.MarkerOptions;
 
+import java.io.ByteArrayOutputStream;
+import java.io.File;
+import java.io.IOException;
+
 public class MapsActivity extends FragmentActivity implements OnMapReadyCallback {
 
     private GoogleMap mMap;
@@ -39,6 +48,9 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
     ListViewAdapter adapter;
     Button save;
     static DBManager dbManager;
+    public static final int REQUEST_IMAGE_CAPTURE = 1001;
+    File file = null;
+    byte[] food;
     static double longi;
     static double lati;
 
@@ -48,7 +60,7 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
         setContentView(R.layout.activity_maps);
 
         //DBManager객체 생성
-        dbManager = new DBManager(getApplicationContext(), "Food.db", null, 1);
+        dbManager = new DBManager(getApplicationContext(), "Food2.db", null, 1);
 
         // 화면을 portrait 세로화면으로 고정
         setRequestedOrientation(ActivityInfo.SCREEN_ORIENTATION_PORTRAIT);
@@ -266,7 +278,6 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
             longi = longitude;
 
             showCurrentLocation(latitude,longitude);
-
         }
 
         public void onProviderDisabled(String provider) {
@@ -297,6 +308,46 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
         optFirst.snippet("Snippet");
         optFirst.icon(BitmapDescriptorFactory.fromResource(R.mipmap.ic_launcher));
         mMap.addMarker(optFirst).showInfoWindow();
+    }
 
+    public void onclickedpicture(View v)
+    {
+        Intent intent = new Intent(MediaStore.ACTION_IMAGE_CAPTURE);
+        intent.putExtra(MediaStore.EXTRA_OUTPUT, Uri.fromFile(file));
+        if (intent.resolveActivity(getPackageManager()) != null) {
+            startActivityForResult(intent, REQUEST_IMAGE_CAPTURE);
+        }
+    }
+
+    private File createFile() throws IOException {
+        String imageFileName = "test.jpg";
+        File storageDir = Environment.getExternalStorageDirectory();
+        File curFile = new File(storageDir, imageFileName);
+
+        return curFile;
+    }
+
+    public byte[] bitmapToByteArray(Bitmap bitmap)
+    {
+        ByteArrayOutputStream stream = new ByteArrayOutputStream();
+        bitmap.compress(Bitmap.CompressFormat.PNG, 50 , stream);
+        byte[] byteArray = stream.toByteArray();
+        return byteArray;
+    }
+
+    @Override
+    protected void onActivityResult(int requestCode, int resultCode, Intent data) {
+        if (requestCode == REQUEST_IMAGE_CAPTURE && resultCode == RESULT_OK) {
+            BitmapFactory.Options options = new BitmapFactory.Options();
+            options.inSampleSize = 8;
+            if (file != null) {
+                Bitmap bitmap = BitmapFactory.decodeFile(file.getAbsolutePath(), options);
+                food = bitmapToByteArray(bitmap);
+                //dbManager.insert(food);
+                //imageView1.setImageBitmap(bitmap);
+            } else {
+                Toast.makeText(getApplicationContext(), "File is null.", Toast.LENGTH_LONG).show();
+            }
+        }
     }
 }

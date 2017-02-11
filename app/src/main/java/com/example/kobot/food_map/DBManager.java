@@ -26,6 +26,7 @@ public class DBManager extends SQLiteOpenHelper  {
         // create table 테이블명 (컬럼명 타입 옵션);
         db.execSQL("CREATE TABLE FOOD_LIST( _id INTEGER PRIMARY KEY AUTOINCREMENT,  name TEXT, category TEXT, memo TEXT);");
         db.execSQL("CREATE TABLE FOOD_MAP(_id INTEGER PRIMARY KEY AUTOINCREMENT, food_id REAL,lati REAL, longi REAL);");
+        db.execSQL("CREATE TABLE FOOD_PICTURE(_id INTEGER PRIMARY KEY AUTOINCREMENT, picture_id REAL, picture BLOB);");
     }
 
     @Override
