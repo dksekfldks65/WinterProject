@@ -62,4 +62,14 @@ public class DBManager extends SQLiteOpenHelper  {
         db.close();
         return lastId;
     }
+
+    public void insert(int picture_id, byte[] picture) {
+        // 읽고 쓰기가 가능하게 DB 열기
+        SQLiteDatabase db = getWritableDatabase();
+
+        // DB에 입력한 값으로 행 추가
+        db.execSQL("INSERT INTO FOOD_PICTURE(picture_id, picture) VALUES(?,?);",new Object[]{picture_id, picture});
+
+        db.close();
+    }
 }

@@ -12,6 +12,7 @@ import android.graphics.BitmapFactory;
 import android.location.Location;
 import android.location.LocationListener;
 import android.location.LocationManager;
+import android.media.Image;
 import android.net.Uri;
 import android.os.Bundle;
 import android.os.Environment;
@@ -22,6 +23,7 @@ import android.view.View;
 import android.widget.AdapterView;
 import android.widget.Button;
 import android.widget.EditText;
+import android.widget.ImageView;
 import android.widget.ListView;
 import android.widget.Spinner;
 import android.widget.TabHost;
@@ -39,6 +41,7 @@ import com.google.android.gms.maps.model.MarkerOptions;
 
 import java.io.ByteArrayOutputStream;
 import java.io.File;
+import java.io.FileNotFoundException;
 import java.io.IOException;
 
 public class MapsActivity extends FragmentActivity implements OnMapReadyCallback {
@@ -47,12 +50,16 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
     ListView listview ;
     ListViewAdapter adapter;
     Button save;
+    Button picture_btn;
     static DBManager dbManager;
-    public static final int REQUEST_IMAGE_CAPTURE = 1001;
-    File file = null;
-    byte[] food;
+    private final int REQ_CODE_GALLERY = 100;
+    static byte[] food;
     static double longi;
     static double lati;
+    ImageView img;
+    static int cnt = 0;
+
+
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -60,7 +67,7 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
         setContentView(R.layout.activity_maps);
 
         //DBManager객체 생성
-        dbManager = new DBManager(getApplicationContext(), "Food2.db", null, 1);
+        dbManager = new DBManager(getApplicationContext(), "Food7.db", null, 1);
 
         // 화면을 portrait 세로화면으로 고정
         setRequestedOrientation(ActivityInfo.SCREEN_ORIENTATION_PORTRAIT);
@@ -71,6 +78,9 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
         mapFragment.getMapAsync(this);
 
         save = (Button) findViewById(R.id.save);
+        picture_btn = (Button) findViewById(R.id.registerpicture);
+
+        img = (ImageView) findViewById(R.id.img);
 
         //매장이름을 받아옴
         final EditText editTitle = (EditText) findViewById(R.id.title);
@@ -175,6 +185,8 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
                 return false;
             }
         });
+
+
 
     }
 
@@ -312,19 +324,62 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
 
     public void onclickedpicture(View v)
     {
-        Intent intent = new Intent(MediaStore.ACTION_IMAGE_CAPTURE);
-        intent.putExtra(MediaStore.EXTRA_OUTPUT, Uri.fromFile(file));
-        if (intent.resolveActivity(getPackageManager()) != null) {
-            startActivityForResult(intent, REQUEST_IMAGE_CAPTURE);
-        }
+        Intent i = new Intent(Intent.ACTION_GET_CONTENT);
+        i.setType("image/*");
+        i.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP);
+        startActivityForResult(i, REQ_CODE_GALLERY);
     }
 
-    private File createFile() throws IOException {
-        String imageFileName = "test.jpg";
-        File storageDir = Environment.getExternalStorageDirectory();
-        File curFile = new File(storageDir, imageFileName);
+    @Override
+    protected void onActivityResult(int requestCode, int resultCode,  Intent data)
+    {
 
-        return curFile;
+        if(requestCode == REQ_CODE_GALLERY){
+            if(resultCode == RESULT_OK){
+                Uri uri = data.getData();
+
+                try {
+                    int food_id=0;
+
+                    Bitmap bm = MediaStore.Images.Media.getBitmap(getContentResolver(), uri);
+                    food = bitmapToByteArray(bm);
+                    img.setImageBitmap(bm);
+
+                    // Adapter 생성
+                    adapter = new ListViewAdapter();
+
+                    // 리스트뷰 참조 및 Adapter달기
+                    listview = (ListView) findViewById(R.id.foodlist);
+                    listview.setAdapter(adapter);
+
+                    //db접근 및 테이블 지정
+                    SQLiteDatabase db = dbManager.getReadableDatabase();
+                    Cursor cursor =db.rawQuery("SELECT _id, name, category, memo FROM FOOD_LIST", null);
+
+                    cursor.moveToLast();
+
+                    if(cnt == 0)
+                    {
+                        dbManager.insert(1, food);
+                        cnt++;
+                    }
+                    else{
+                        food_id = cursor.getInt(0)+1;
+                        dbManager.insert(food_id, food);
+                        food = null;
+                    }
+
+
+                } catch (FileNotFoundException e) {
+                    // TODO Auto-generated catch block
+                    e.printStackTrace();
+                } catch (IOException e) {
+                    // TODO Auto-generated catch block
+                    e.printStackTrace();
+                }
+
+            }
+        }
     }
 
     public byte[] bitmapToByteArray(Bitmap bitmap)
@@ -335,19 +390,6 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
         return byteArray;
     }
 
-    @Override
-    protected void onActivityResult(int requestCode, int resultCode, Intent data) {
-        if (requestCode == REQUEST_IMAGE_CAPTURE && resultCode == RESULT_OK) {
-            BitmapFactory.Options options = new BitmapFactory.Options();
-            options.inSampleSize = 8;
-            if (file != null) {
-                Bitmap bitmap = BitmapFactory.decodeFile(file.getAbsolutePath(), options);
-                food = bitmapToByteArray(bitmap);
-                //dbManager.insert(food);
-                //imageView1.setImageBitmap(bitmap);
-            } else {
-                Toast.makeText(getApplicationContext(), "File is null.", Toast.LENGTH_LONG).show();
-            }
-        }
-    }
+
+
 }

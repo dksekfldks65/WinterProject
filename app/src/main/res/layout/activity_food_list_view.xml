@@ -1,5 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
     android:id="@+id/activity_food_list_view"
     android:layout_width="match_parent"
@@ -40,10 +41,20 @@
         android:text="확인"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:layout_alignParentBottom="true"
-        android:layout_centerHorizontal="true"
-        android:layout_marginBottom="32dp"
+        android:layout_marginBottom="10dp"
         android:id="@+id/save"
-        android:onClick="onclickedsave" />
+        android:onClick="onclickedsave"
+        android:layout_alignParentBottom="true"
+        android:layout_alignEnd="@+id/memo" />
+
+    <ImageView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        app:srcCompat="@color/cast_expanded_controller_ad_container_white_stripe_color"
+        android:layout_alignBottom="@+id/save"
+        android:layout_alignStart="@+id/memo"
+        android:layout_marginStart="42dp"
+        android:layout_marginBottom="37dp"
+        android:id="@+id/imageView2" />
 
 </RelativeLayout>
