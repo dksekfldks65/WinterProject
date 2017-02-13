@@ -62,7 +62,7 @@ public class StartActivity extends AppCompatActivity {
 
         imgview1.setBackgroundDrawable(mAnimationDrawable_2);
         Handler hd = new Handler();
-        hd.postDelayed(new splashhandler() , 5000); // 5초 후에 hd Handler 실행
+        hd.postDelayed(new splashhandler() , 2000); // 5초 후에 hd Handler 실행
 
     }
 

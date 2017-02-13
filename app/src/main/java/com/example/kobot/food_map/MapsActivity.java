@@ -8,14 +8,11 @@ import android.content.pm.ActivityInfo;
 import android.database.Cursor;
 import android.database.sqlite.SQLiteDatabase;
 import android.graphics.Bitmap;
-import android.graphics.BitmapFactory;
 import android.location.Location;
 import android.location.LocationListener;
 import android.location.LocationManager;
-import android.media.Image;
 import android.net.Uri;
 import android.os.Bundle;
-import android.os.Environment;
 import android.provider.MediaStore;
 import android.support.v4.app.FragmentActivity;
 import android.support.v4.content.ContextCompat;
@@ -27,7 +24,6 @@ import android.widget.ImageView;
 import android.widget.ListView;
 import android.widget.Spinner;
 import android.widget.TabHost;
-import android.widget.TextView;
 import android.widget.Toast;
 
 import com.google.android.gms.maps.CameraUpdateFactory;
@@ -36,11 +32,9 @@ import com.google.android.gms.maps.OnMapReadyCallback;
 import com.google.android.gms.maps.SupportMapFragment;
 import com.google.android.gms.maps.model.BitmapDescriptorFactory;
 import com.google.android.gms.maps.model.LatLng;
-import com.google.android.gms.maps.model.Marker;
 import com.google.android.gms.maps.model.MarkerOptions;
 
 import java.io.ByteArrayOutputStream;
-import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.IOException;
 
@@ -57,9 +51,6 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
     static double longi;
     static double lati;
     ImageView img;
-    static int cnt = 0;
-
-
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -67,7 +58,7 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
         setContentView(R.layout.activity_maps);
 
         //DBManager객체 생성
-        dbManager = new DBManager(getApplicationContext(), "Food7.db", null, 1);
+        dbManager = new DBManager(getApplicationContext(), "Food11.db", null, 1);
 
         // 화면을 portrait 세로화면으로 고정
         setRequestedOrientation(ActivityInfo.SCREEN_ORIENTATION_PORTRAIT);
@@ -175,6 +166,7 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
                         //DB delete하는 명령, 리스트뷰 갱신
                         dbManager.delete("delete from FOOD_LIST where _id = '" + get_id + "';");
                         dbManager.delete("delete from FOOD_MAP where food_id = '" + get_id + "';");
+                        dbManager.delete("delete from FOOD_PICTURE where picture_id = '" + get_id + "';");
 
                         adapter.deleteItem(position);
                         adapter.notifyDataSetChanged();
@@ -185,9 +177,6 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
                 return false;
             }
         });
-
-
-
     }
 
     //데이터 저장 및 리스트뷰 출력
@@ -241,6 +230,7 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
         }
 
         dbManager.insert("insert into FOOD_MAP values(null, "+food_id+","+lati+", "+longi+");");
+        img.setImageDrawable(null);
     }
 
 
@@ -356,14 +346,14 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
                     SQLiteDatabase db = dbManager.getReadableDatabase();
                     Cursor cursor =db.rawQuery("SELECT _id, name, category, memo FROM FOOD_LIST", null);
 
-                    cursor.moveToLast();
+                    int count = cursor.getCount();
 
-                    if(cnt == 0)
-                    {
+                    if(count == 0) {
                         dbManager.insert(1, food);
-                        cnt++;
                     }
+
                     else{
+                        cursor.moveToLast();
                         food_id = cursor.getInt(0)+1;
                         dbManager.insert(food_id, food);
                         food = null;

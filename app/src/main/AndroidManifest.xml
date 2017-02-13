@@ -45,7 +45,10 @@
             android:name=".MapsActivity"
             android:label="@string/title_activity_maps" />
         <activity android:name=".ListItem" /> 
-        <activity android:name=".FoodListView"></activity>
+        <activity
+            android:name=".FoodListView"
+            android:theme="@style/Theme.AppCompat.NoActionBar">
+        </activity>
     </application>
 
 </manifest>
