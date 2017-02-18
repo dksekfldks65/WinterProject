@@ -48,9 +48,10 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
     static DBManager dbManager;
     private final int REQ_CODE_GALLERY = 100;
     static byte[] food;
+    static byte[][] foodpicture_save;
     static double longi;
     static double lati;
-    ImageView img;
+    static int i=0;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -58,36 +59,24 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
         setContentView(R.layout.activity_maps);
 
         //DBManager객체 생성
-        dbManager = new DBManager(getApplicationContext(), "Food11.db", null, 1);
+        dbManager = new DBManager(getApplicationContext(), "Food.db", null, 1);
 
         // 화면을 portrait 세로화면으로 고정
         setRequestedOrientation(ActivityInfo.SCREEN_ORIENTATION_PORTRAIT);
 
         // Obtain the SupportMapFragment and get notified when the map is ready to be used.
-        SupportMapFragment mapFragment = (SupportMapFragment) getSupportFragmentManager()
-                .findFragmentById(R.id.map);
+        SupportMapFragment mapFragment = (SupportMapFragment) getSupportFragmentManager().findFragmentById(R.id.map);
         mapFragment.getMapAsync(this);
 
         save = (Button) findViewById(R.id.save);
         picture_btn = (Button) findViewById(R.id.registerpicture);
 
-        img = (ImageView) findViewById(R.id.img);
-
-        //매장이름을 받아옴
-        final EditText editTitle = (EditText) findViewById(R.id.title);
-
-        //Spinner 생성 및 string객체로 값 받아옴
-        final Spinner spinner = (Spinner)findViewById(R.id.spinner1);
-
-        //메모내용을 받아옴
-        final EditText editMemo = (EditText) findViewById(R.id.grade);
-
-        // Adapter 생성
+        // Adapter 생성, 리스트뷰 참조 및 Adapter달기
         adapter = new ListViewAdapter() ;
-
-        // 리스트뷰 참조 및 Adapter달기
         listview = (ListView) findViewById(R.id.foodlist);
         listview.setAdapter(adapter);
+
+        foodpicture_save = new byte [30][];
 
         //Tab 메뉴바 생성
         TabHost tabHost=(TabHost)findViewById(R.id.tabHost);
@@ -116,7 +105,8 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
 
         //db접근 및 테이블 지정
         SQLiteDatabase db = dbManager.getReadableDatabase();
-        Cursor cursor =db.rawQuery("SELECT _id, name, category, memo FROM FOOD_LIST", null);
+        Cursor cursor =db.rawQuery("SELECT _id, name, memo FROM FOOD", null);
+        Cursor cursor2 =db.rawQuery("SELECT _id, food_id, category FROM FOOD_CATEGORY", null);
 
         //데이터 베이스 내용 리스트뷰 출력
         while(cursor.moveToNext())
@@ -125,7 +115,6 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
             String temp_title = cursor.getString(1);
             String temp_category = cursor.getString(2);
             adapter.addItem(ContextCompat.getDrawable(this, R.drawable.ic_launcher), temp_title, temp_category, cursor.getInt(0)) ;
-
         }
 
         // 위에서 생성한 listview에 클릭 이벤트 핸들러 정의.
@@ -135,9 +124,6 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
                 // get item
                 ListItem item = (ListItem) parent.getItemAtPosition(position) ;
                 Intent intent = new Intent(getApplicationContext(), FoodListView.class);
-
-                Toast.makeText(getApplicationContext(), String.valueOf(item.getId()), Toast.LENGTH_SHORT).show();
-
                 intent.putExtra("itemi", item.getId());
                 startActivity(intent);
 
@@ -156,17 +142,14 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
                     public void onClick(DialogInterface dialog, int i) {
                         dialog.dismiss();
 
-                        SQLiteDatabase db = dbManager.getReadableDatabase();
-
                         long get_id;
-
                         get_id = adapter.getItemId(position);
 
-
                         //DB delete하는 명령, 리스트뷰 갱신
-                        dbManager.delete("delete from FOOD_LIST where _id = '" + get_id + "';");
+                        dbManager.delete("delete from FOOD where _id = '" + get_id + "';");
                         dbManager.delete("delete from FOOD_MAP where food_id = '" + get_id + "';");
-                        dbManager.delete("delete from FOOD_PICTURE where picture_id = '" + get_id + "';");
+                        dbManager.delete("delete from FOOD_CATEGORY where food_id = '" + get_id + "';");
+                        dbManager.delete("delete from FOOD_PICTURE where food_id = '" + get_id + "';");
 
                         adapter.deleteItem(position);
                         adapter.notifyDataSetChanged();
@@ -184,68 +167,93 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
     {
         int food_id=0;
 
-        // Adapter 생성
+        // Adapter 생성, 리스트뷰 참조 및 Adapter달기
         adapter = new ListViewAdapter();
-
-        // 리스트뷰 참조 및 Adapter달기
         listview = (ListView) findViewById(R.id.foodlist);
         listview.setAdapter(adapter);
 
-        //매장이름을 받아옴
         final EditText editTitle = (EditText) findViewById(R.id.title);
-
-        //Spinner 생성 및 string객체로 값 받아옴
-        final Spinner spinner = (Spinner)findViewById(R.id.spinner1);
-
-        //메모내용을 받아옴
+        final Spinner spinner = (Spinner) findViewById(R.id.spinner1);
         final EditText editMemo = (EditText) findViewById(R.id.grade);
 
-
         String title = editTitle.getText().toString();
-
         String spinnertext = spinner.getSelectedItem().toString();
-
         String memo = editMemo.getText().toString();
 
-        Toast.makeText(getApplicationContext(), String.valueOf(lati), Toast.LENGTH_SHORT).show();
-        Toast.makeText(getApplicationContext(), String.valueOf(longi), Toast.LENGTH_SHORT).show();
+        dbManager.insert("insert into FOOD values(null, '" + title + "', '" +memo + "');");
 
-        dbManager.insert("insert into FOOD_LIST values(null, '" + title + "', '" + spinnertext + "', '" +memo + "');");
+        //db접근 및 테이블 지정
+        SQLiteDatabase db = dbManager.getReadableDatabase();
+        Cursor cursor =db.rawQuery("SELECT _id, name, memo FROM FOOD", null);
+        Cursor cursor2 =db.rawQuery("SELECT _id, food_id, category FROM FOOD_CATEGORY", null);
+
+        cursor.moveToLast();
+        food_id = cursor.getInt(0);
+
+        dbManager.insert("insert into FOOD_CATEGORY values(null, '" + food_id + "', '" + spinnertext + "');");
+
+
+        for(int j=0; j<30;j++)
+        {
+            if(foodpicture_save[j] == null)
+            {
+                break;
+            }
+
+            else if(foodpicture_save[j] != null)
+            {
+                dbManager.insert(food_id, foodpicture_save[j]);
+                Toast.makeText(getApplicationContext(), "사진 db에 저장됨", Toast.LENGTH_SHORT).show();
+            }
+
+        }
 
         editTitle.setText("");
         editMemo.setText("");
 
-        //db접근 및 테이블 지정
-        SQLiteDatabase db = dbManager.getReadableDatabase();
-        Cursor cursor =db.rawQuery("SELECT _id, name, category, memo FROM FOOD_LIST", null);
+        cursor.moveToFirst();
+        cursor.moveToPrevious();
 
-        //리스트뷰 추가
+        //데이터 베이스 내용 리스트뷰 출력
         while(cursor.moveToNext())
         {
+            //리스트뷰 초기화
             String temp_title = cursor.getString(1);
             String temp_category = cursor.getString(2);
             adapter.addItem(ContextCompat.getDrawable(this, R.drawable.ic_launcher), temp_title, temp_category, cursor.getInt(0)) ;
-
-            food_id = cursor.getInt(0);
         }
 
         dbManager.insert("insert into FOOD_MAP values(null, "+food_id+","+lati+", "+longi+");");
-        img.setImageDrawable(null);
+
+        i = 0;
+
+        for(int i=0;i<30;i++)
+        {
+            if(foodpicture_save[i] != null) {
+                foodpicture_save[i] = null;
+                Toast.makeText(getApplicationContext(), "picture save 지워짐", Toast.LENGTH_SHORT).show();
+            }
+
+            else{
+                break;
+            }
+        }
+
+        food = null;
+
     }
 
 
     @Override
     public void onMapReady(GoogleMap googleMap) {
         mMap = googleMap;
-        Location location;
         LocationManager manager = (LocationManager)getSystemService(Context.LOCATION_SERVICE) ;
         GPSListener gpsListener = new GPSListener();
-        long minTime = 10000;
+        long minTime = 60000;
         float minDistance = 0;
 
 
         try {
-            Toast.makeText(getApplicationContext(), "try문", Toast.LENGTH_SHORT).show();
             manager.requestLocationUpdates(
                     LocationManager.GPS_PROVIDER,
                     minTime,
@@ -254,13 +262,13 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
         }
 
         catch (Exception E) {
-            Toast.makeText(getApplicationContext(), "예외처리", Toast.LENGTH_SHORT).show();
             manager.requestLocationUpdates(
                     LocationManager.NETWORK_PROVIDER,
                     minTime,
                     minDistance,
                     gpsListener);
         }
+
         Toast.makeText(getApplicationContext(), "위치 확인 시작함. 로그를 확인하세요.", Toast.LENGTH_SHORT).show();
     }
 
@@ -274,8 +282,6 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
             latitude = location.getLatitude();
             longitude = location.getLongitude();
 
-            Toast.makeText(getApplicationContext(), String.valueOf(latitude), Toast.LENGTH_SHORT).show();
-            Toast.makeText(getApplicationContext(), String.valueOf(longitude), Toast.LENGTH_SHORT).show();
             lati = latitude;
             longi = longitude;
 
@@ -288,9 +294,6 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
         public void onProviderEnabled(String provider) {
             lati = location.getLatitude();
             longi = location.getLongitude();
-
-            Toast.makeText(getApplicationContext(), String.valueOf(lati), Toast.LENGTH_SHORT).show();
-            Toast.makeText(getApplicationContext(), String.valueOf(longi), Toast.LENGTH_SHORT).show();
         }
 
         public void onStatusChanged(String provider, int status, Bundle extras) {
@@ -299,6 +302,7 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
 
     private void showCurrentLocation(final Double latitude, final Double longitude) {
         // 현재 위치를 이용해 LatLon 객체 생성
+        mMap.clear();
         LatLng curPoint = new LatLng(latitude, longitude);
         mMap.moveCamera(CameraUpdateFactory.newLatLng(curPoint));
 
@@ -320,6 +324,7 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
         startActivityForResult(i, REQ_CODE_GALLERY);
     }
 
+    //겔러리로부터 이미지 경로를 받아와 비트맵을 byteArray로 전환후 db에 저장
     @Override
     protected void onActivityResult(int requestCode, int resultCode,  Intent data)
     {
@@ -329,36 +334,16 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
                 Uri uri = data.getData();
 
                 try {
-                    int food_id=0;
 
                     Bitmap bm = MediaStore.Images.Media.getBitmap(getContentResolver(), uri);
+
+
                     food = bitmapToByteArray(bm);
-                    img.setImageBitmap(bm);
 
-                    // Adapter 생성
-                    adapter = new ListViewAdapter();
+                    foodpicture_save[i] = food;
 
-                    // 리스트뷰 참조 및 Adapter달기
-                    listview = (ListView) findViewById(R.id.foodlist);
-                    listview.setAdapter(adapter);
-
-                    //db접근 및 테이블 지정
-                    SQLiteDatabase db = dbManager.getReadableDatabase();
-                    Cursor cursor =db.rawQuery("SELECT _id, name, category, memo FROM FOOD_LIST", null);
-
-                    int count = cursor.getCount();
-
-                    if(count == 0) {
-                        dbManager.insert(1, food);
-                    }
-
-                    else{
-                        cursor.moveToLast();
-                        food_id = cursor.getInt(0)+1;
-                        dbManager.insert(food_id, food);
-                        food = null;
-                    }
-
+                    Toast.makeText(getApplicationContext(), "사진이 추가 되었습니다.", Toast.LENGTH_SHORT).show();
+                    i++;
 
                 } catch (FileNotFoundException e) {
                     // TODO Auto-generated catch block
@@ -366,20 +351,21 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
                 } catch (IOException e) {
                     // TODO Auto-generated catch block
                     e.printStackTrace();
+                } catch (Exception e){
+                    Toast.makeText(getApplicationContext(), "한번에 추가 할 수 있는 사진의 갯수를 초과했습니다.", Toast.LENGTH_SHORT).show();
                 }
+
 
             }
         }
     }
 
+    //비트맵을 byteArray로 변환
     public byte[] bitmapToByteArray(Bitmap bitmap)
     {
         ByteArrayOutputStream stream = new ByteArrayOutputStream();
-        bitmap.compress(Bitmap.CompressFormat.PNG, 50 , stream);
+        bitmap.compress(Bitmap.CompressFormat.PNG, 100 , stream);
         byte[] byteArray = stream.toByteArray();
         return byteArray;
     }
-
-
-
 }

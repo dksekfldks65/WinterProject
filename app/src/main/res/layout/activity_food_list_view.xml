@@ -59,14 +59,13 @@
         android:layout_below="@+id/title"
         android:layout_centerHorizontal="true" />
 
-    <ImageView
-        android:layout_width="150dp"
-        android:layout_height="150dp"
-        app:srcCompat="@color/cast_expanded_controller_ad_container_white_stripe_color"
-        android:layout_marginStart="13dp"
-        android:id="@+id/imageView2"
+    <Button
+        android:text="사진보기"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
         android:layout_alignBottom="@+id/save"
         android:layout_alignStart="@+id/memo"
-        android:background="#DCDCDC" />
+        android:id="@+id/gallerybtn"
+        android:onClick="galleryClicked" />
 
 </RelativeLayout>

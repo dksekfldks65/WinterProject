@@ -44,9 +44,13 @@
         <activity
             android:name=".MapsActivity"
             android:label="@string/title_activity_maps" />
-        <activity android:name=".ListItem" /> 
+        <activity android:name=".ListItem" />
         <activity
             android:name=".FoodListView"
+            android:theme="@style/Theme.AppCompat.NoActionBar" />
+
+        <activity
+            android:name=".GalleryActivity"
             android:theme="@style/Theme.AppCompat.NoActionBar">
         </activity>
     </application>
