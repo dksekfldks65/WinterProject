@@ -22,9 +22,9 @@ public class DBManager extends SQLiteOpenHelper  {
         // 새로운 테이블을 생성한다.
         // create table 테이블명 (컬럼명 타입 옵션);
         db.execSQL("CREATE TABLE FOOD( _id INTEGER PRIMARY KEY AUTOINCREMENT,  name VARCHAR(30), memo TEXT);");
-        db.execSQL("CREATE TABLE FOOD_CATEGORY( _id INTEGER PRIMARY KEY AUTOINCREMENT, food_id INTEGER, category VARCHAR(30));");
-        db.execSQL("CREATE TABLE FOOD_MAP(_id INTEGER PRIMARY KEY AUTOINCREMENT, food_id INTEGER,lati REAL, longi REAL);");
-        db.execSQL("CREATE TABLE FOOD_PICTURE(_id INTEGER PRIMARY KEY AUTOINCREMENT, food_id INTEGER, picture BLOB);");
+        db.execSQL("CREATE TABLE FOOD_CATEGORY( _id INTEGER PRIMARY KEY AUTOINCREMENT, food_id INTEGER REFERENCES FOOD(_id) on delete restrict, category VARCHAR(30));");
+        db.execSQL("CREATE TABLE FOOD_MAP(_id INTEGER PRIMARY KEY AUTOINCREMENT, food_id INTEGER REFERENCES FOOD(_id) on delete restrict,lati REAL, longi REAL);");
+        db.execSQL("CREATE TABLE FOOD_PICTURE(_id INTEGER PRIMARY KEY AUTOINCREMENT, food_id INTEGER REFERENCES FOOD(_id) on delete restrict, picture BLOB);");
     }
 
     @Override

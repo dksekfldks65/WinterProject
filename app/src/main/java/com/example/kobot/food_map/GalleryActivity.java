@@ -34,7 +34,7 @@ public class GalleryActivity extends AppCompatActivity {
         id = intent.getExtras().getInt("itemid");
 
         //DBManager객체 생성
-        dbManager = new DBManager(getApplicationContext(), "Food.db", null, 1);
+        dbManager = new DBManager(getApplicationContext(), "Food3.db", null, 1);
 
         //db접근 및 테이블 지정
         SQLiteDatabase db = dbManager.getReadableDatabase();
@@ -63,9 +63,7 @@ public class GalleryActivity extends AppCompatActivity {
 
     private GridView.OnItemClickListener gridviewOnItemClickListener
             = new GridView.OnItemClickListener() {
-
         public void onItemClick(AdapterView<?> arg0, View arg1, int arg2, long arg3) {
-
 
         }
     };
@@ -85,15 +83,12 @@ public class GalleryActivity extends AppCompatActivity {
             mContext = c;
         }
 
-
         public int getCount() {
             int i=0;
-            for(int j=0;j<foodBit.length;j++)
-            {
+            for(int j=0;j<foodBit.length;j++) {
                 if(foodBit[j] == null){
                     break;
                 }
-
                 else{
                     i++;
                 }

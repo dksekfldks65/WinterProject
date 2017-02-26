@@ -37,6 +37,8 @@ import com.google.android.gms.maps.model.MarkerOptions;
 import java.io.ByteArrayOutputStream;
 import java.io.FileNotFoundException;
 import java.io.IOException;
+import java.text.DateFormat;
+import java.util.Date;
 
 public class MapsActivity extends FragmentActivity implements OnMapReadyCallback {
 
@@ -59,7 +61,7 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
         setContentView(R.layout.activity_maps);
 
         //DBManager객체 생성
-        dbManager = new DBManager(getApplicationContext(), "Food.db", null, 1);
+        dbManager = new DBManager(getApplicationContext(), "Food3.db", null, 1);
 
         // 화면을 portrait 세로화면으로 고정
         setRequestedOrientation(ActivityInfo.SCREEN_ORIENTATION_PORTRAIT);
@@ -111,9 +113,10 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
         //데이터 베이스 내용 리스트뷰 출력
         while(cursor.moveToNext())
         {
+            cursor2.moveToNext();
             //리스트뷰 초기화
             String temp_title = cursor.getString(1);
-            String temp_category = cursor.getString(2);
+            String temp_category = cursor2.getString(2);
             adapter.addItem(ContextCompat.getDrawable(this, R.drawable.ic_launcher), temp_title, temp_category, cursor.getInt(0)) ;
         }
 
@@ -162,6 +165,31 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
         });
     }
 
+    @Override
+    protected void onRestart() {
+        super.onRestart();
+        // Adapter 생성, 리스트뷰 참조 및 Adapter달기
+        adapter = new ListViewAdapter();
+        listview = (ListView) findViewById(R.id.foodlist);
+        listview.setAdapter(adapter);
+
+        //db접근 및 테이블 지정
+        SQLiteDatabase db = dbManager.getReadableDatabase();
+        Cursor cursor =db.rawQuery("SELECT _id, name, memo FROM FOOD", null);
+        Cursor cursor2 =db.rawQuery("SELECT _id, food_id, category FROM FOOD_CATEGORY", null);
+
+        //데이터 베이스 내용 리스트뷰 출력
+        while(cursor.moveToNext())
+        {
+            cursor2.moveToNext();
+            //리스트뷰 초기화
+            String temp_title = cursor.getString(1);
+            String temp_category = cursor2.getString(2);
+            adapter.addItem(ContextCompat.getDrawable(this, R.drawable.ic_launcher), temp_title, temp_category, cursor.getInt(0)) ;
+        }
+    }
+
+
     //데이터 저장 및 리스트뷰 출력
     public void onclickedsave(View v)
     {
@@ -192,20 +220,15 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
 
         dbManager.insert("insert into FOOD_CATEGORY values(null, '" + food_id + "', '" + spinnertext + "');");
 
-
-        for(int j=0; j<30;j++)
-        {
-            if(foodpicture_save[j] == null)
-            {
+        for(int j=0; j<30;j++) {
+            if(foodpicture_save[j] == null) {
                 break;
             }
 
-            else if(foodpicture_save[j] != null)
-            {
+            else if(foodpicture_save[j] != null) {
                 dbManager.insert(food_id, foodpicture_save[j]);
                 Toast.makeText(getApplicationContext(), "사진 db에 저장됨", Toast.LENGTH_SHORT).show();
             }
-
         }
 
         editTitle.setText("");
@@ -214,9 +237,11 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
         cursor.moveToFirst();
         cursor.moveToPrevious();
 
+        String currentDateTimeString = DateFormat.getDateTimeInstance().format(new Date());
+        Toast.makeText(getApplicationContext(), currentDateTimeString, Toast.LENGTH_SHORT).show();
+
         //데이터 베이스 내용 리스트뷰 출력
-        while(cursor.moveToNext())
-        {
+        while(cursor.moveToNext()) {
             //리스트뷰 초기화
             String temp_title = cursor.getString(1);
             String temp_category = cursor.getString(2);
@@ -227,8 +252,7 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
 
         i = 0;
 
-        for(int i=0;i<30;i++)
-        {
+        for(int i=0;i<30;i++) {
             if(foodpicture_save[i] != null) {
                 foodpicture_save[i] = null;
                 Toast.makeText(getApplicationContext(), "picture save 지워짐", Toast.LENGTH_SHORT).show();
@@ -238,9 +262,7 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
                 break;
             }
         }
-
         food = null;
-
     }
 
 
@@ -316,8 +338,7 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
         mMap.addMarker(optFirst).showInfoWindow();
     }
 
-    public void onclickedpicture(View v)
-    {
+    public void onclickedpicture(View v) {
         Intent i = new Intent(Intent.ACTION_GET_CONTENT);
         i.setType("image/*");
         i.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP);
@@ -326,9 +347,7 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
 
     //겔러리로부터 이미지 경로를 받아와 비트맵을 byteArray로 전환후 db에 저장
     @Override
-    protected void onActivityResult(int requestCode, int resultCode,  Intent data)
-    {
-
+    protected void onActivityResult(int requestCode, int resultCode,  Intent data) {
         if(requestCode == REQ_CODE_GALLERY){
             if(resultCode == RESULT_OK){
                 Uri uri = data.getData();
@@ -354,15 +373,12 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
                 } catch (Exception e){
                     Toast.makeText(getApplicationContext(), "한번에 추가 할 수 있는 사진의 갯수를 초과했습니다.", Toast.LENGTH_SHORT).show();
                 }
-
-
             }
         }
     }
 
     //비트맵을 byteArray로 변환
-    public byte[] bitmapToByteArray(Bitmap bitmap)
-    {
+    public byte[] bitmapToByteArray(Bitmap bitmap) {
         ByteArrayOutputStream stream = new ByteArrayOutputStream();
         bitmap.compress(Bitmap.CompressFormat.PNG, 100 , stream);
         byte[] byteArray = stream.toByteArray();

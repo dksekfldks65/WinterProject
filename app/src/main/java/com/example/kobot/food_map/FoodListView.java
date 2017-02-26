@@ -32,7 +32,7 @@ public class FoodListView extends AppCompatActivity {
         id = intent.getExtras().getInt("itemi");
 
         //db열기
-        dbManager= new DBManager(getApplicationContext(), "Food.db", null, 1);
+        dbManager= new DBManager(getApplicationContext(), "Food3.db", null, 1);
         SQLiteDatabase db = dbManager.getReadableDatabase();
 
         //커서지정
@@ -46,7 +46,6 @@ public class FoodListView extends AppCompatActivity {
                 break;
             }
         }
-
     }
 
     //데이터 저장 및 업데이트 기능 구현
@@ -90,6 +89,4 @@ public class FoodListView extends AppCompatActivity {
         intent.putExtra("itemid", id);
         startActivity(intent);
     }
-
-
 }
