@@ -48,11 +48,10 @@
         <activity
             android:name=".FoodListView"
             android:theme="@style/Theme.AppCompat.NoActionBar" />
-
         <activity
             android:name=".GalleryActivity"
-            android:theme="@style/Theme.AppCompat.NoActionBar">
-        </activity>
+            android:theme="@style/Theme.AppCompat.NoActionBar"></activity>
+        <activity android:name=".FoodListViewActivity"></activity>
     </application>
 
 </manifest>

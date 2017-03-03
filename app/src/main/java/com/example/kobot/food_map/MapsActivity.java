@@ -126,7 +126,7 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
             public void onItemClick(AdapterView parent, View v, int position, long id) {
                 // get item
                 ListItem item = (ListItem) parent.getItemAtPosition(position) ;
-                Intent intent = new Intent(getApplicationContext(), FoodListView.class);
+                Intent intent = new Intent(getApplicationContext(), FoodListViewActivity.class);
                 intent.putExtra("itemi", item.getId());
                 startActivity(intent);
 
@@ -208,6 +208,7 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
         String spinnertext = spinner.getSelectedItem().toString();
         String memo = editMemo.getText().toString();
 
+
         dbManager.insert("insert into FOOD values(null, '" + title + "', '" +memo + "');");
 
         //db접근 및 테이블 지정
@@ -233,6 +234,7 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
 
         editTitle.setText("");
         editMemo.setText("");
+        spinner.setSelection(0);
 
         cursor.moveToFirst();
         cursor.moveToPrevious();
